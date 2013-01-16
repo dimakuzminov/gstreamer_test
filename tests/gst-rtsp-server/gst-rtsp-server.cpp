@@ -47,6 +47,7 @@ main (int argc, char *argv[])
     GstRTSPServer *server;
     GstRTSPMediaMapping *mapping;
     GstRTSPMediaFactory *factory;
+    char buffer[512] = {};
 #ifdef WITH_AUTH
     GstRTSPAuth *auth;
     gchar *basic;
@@ -80,10 +81,19 @@ main (int argc, char *argv[])
      * element with pay%d names will be a stream */
     factory = gst_rtsp_media_factory_new ();
 
-    gst_rtsp_media_factory_set_launch (factory, "( "
-            "videotestsrc ! video/x-raw-yuv,width=320,height=240,framerate=10/1 ! "
-            "x264enc ! queue ! rtph264pay name=pay0 pt=96 ! audiotestsrc ! audio/x-raw-int,rate=8000 ! alawenc ! rtppcmapay name=pay1 pt=97 "")");
-
+#if 0
+    sprintf( buffer, "( "
+		    "udpsrc port=9978 caps=\"application/x-rtp, media=(string)video, clock-rate=(int)90000, encoding-name=(string)H264\" "
+		    "! rtph264depay ! ffdec_h264 ! ffmpegcolorspace ! videoscale ! x264enc ! queue ! rtph264pay name=pay0 pt=96 " 
+		    ")" );
+#else
+    sprintf( buffer, "( "
+		    "udpsrc port=9978 caps=\"application/x-rtp, media=(string)video, clock-rate=(int)90000, encoding-name=(string)H264\" "
+		    "! rtph264depay ! ffdec_h264 ! ffmpegcolorspace ! videoscale ! x264enc ! queue ! rtph264pay name=pay0 pt=96 " 
+		    ")" );
+#endif
+    printf( "My Command[%s]\n", buffer );
+    gst_rtsp_media_factory_set_launch (factory, buffer );
     /* attach the test factory to the /test url */
     gst_rtsp_media_mapping_add_factory (mapping, "/test", factory);
 

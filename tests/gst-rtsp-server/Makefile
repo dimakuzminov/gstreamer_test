@@ -12,9 +12,10 @@ CFLAGS += -g -I../include -D__USE_LZO__ -D__DEBUGING__ -I/usr/include/SDL -D__ST
 		`pkg-config gtk+-2.0 gstreamer-0.10 gst-rtsp-server-0.10 --cflags`
 CXXFLAGS += $(CFLAGS)
 
-LDFLAGS += -g -llzo2 -lstdc++ -lm -lpng -lrt -lGL -lGLU -lglut -lpthread -lboost_thread \
-	 	-L/usr/lib64 -lSDL -lSDL_mixer \
-		`pkg-config gtk+-2.0 gstreamer-0.10 gst-rtsp-server-0.10 --libs`
+LDFLAGS += -L/usr/local/lib/gstreamer-0.10/ -L/usr/local/lib/ \
+		   `pkg-config gtk+-2.0 gstreamer-0.10 gst-rtsp-server-0.10 --libs` \
+			-g -llzo2 -lstdc++ -lm -lpng -lrt -lGL -lGLU -lglut -lpthread -lboost_thread-mt \
+		   -lSDL -lSDL_mixer
 # -Xlinker -rpath -Xlinker /usr/local/lib
 
 all:$(TARGET) 
