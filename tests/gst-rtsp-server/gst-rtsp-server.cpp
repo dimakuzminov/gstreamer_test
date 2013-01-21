@@ -81,17 +81,10 @@ main (int argc, char *argv[])
      * element with pay%d names will be a stream */
     factory = gst_rtsp_media_factory_new ();
 
-#if 0
     sprintf( buffer, "( "
 		    "udpsrc port=9978 caps=\"application/x-rtp, media=(string)video, clock-rate=(int)90000, encoding-name=(string)H264\" "
-		    "! rtph264depay ! ffdec_h264 ! ffmpegcolorspace ! videoscale ! x264enc ! queue ! rtph264pay name=pay0 pt=96 " 
+		    "! rtph264depay ! ffdec_h264 speed-preset=ultrafast tune=zerolatency ! ffmpegcolorspace ! videoscale ! x264enc speed-preset=ultrafast tune=zerolatency  ! rtph264pay name=pay0 pt=96 " 
 		    ")" );
-#else
-    sprintf( buffer, "( "
-		    "udpsrc port=9978 caps=\"application/x-rtp, media=(string)video, clock-rate=(int)90000, encoding-name=(string)H264\" "
-		    "! rtph264depay ! ffdec_h264 ! ffmpegcolorspace ! videoscale ! x264enc ! queue ! rtph264pay name=pay0 pt=96 " 
-		    ")" );
-#endif
     printf( "My Command[%s]\n", buffer );
     gst_rtsp_media_factory_set_launch (factory, buffer );
     /* attach the test factory to the /test url */
