@@ -1,0 +1,12 @@
+prefix=/home/slomo/Projects/gstreamer/gst-sdk/cerbero/dist/android
+exec_prefix=${prefix}
+libdir=/home/slomo/Projects/gstreamer/gst-sdk/cerbero/dist/android/lib
+includedir=${prefix}/include
+
+Name: FreeType 2
+Description: A free, high-quality, and portable font engine.
+Version: 15.0.9
+Requires:
+Libs: -L${libdir} -lfreetype
+Libs.private: -lz  
+Cflags: -I${includedir}/freetype2 -I${includedir}

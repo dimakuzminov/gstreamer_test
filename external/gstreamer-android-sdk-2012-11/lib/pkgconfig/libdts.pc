@@ -1,0 +1,11 @@
+prefix=/home/slomo/Projects/gstreamer/gst-sdk/cerbero/dist/android
+exec_prefix=${prefix}
+libdir=/home/slomo/Projects/gstreamer/gst-sdk/cerbero/dist/android/lib
+includedir=${prefix}/include
+
+Name: libdts
+Description: Backward compatibility place-holder for libdca.
+Version: 0.0.5
+Requires: libdca = 0.0.5
+Libs: -L${libdir} -ldca
+Cflags: -I${includedir}/libdca

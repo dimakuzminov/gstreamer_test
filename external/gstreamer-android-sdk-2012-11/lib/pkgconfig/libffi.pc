@@ -1,0 +1,10 @@
+prefix=/home/slomo/Projects/gstreamer/gst-sdk/cerbero/dist/android
+exec_prefix=${prefix}
+libdir=/home/slomo/Projects/gstreamer/gst-sdk/cerbero/dist/android/lib
+includedir=${libdir}/libffi-3.0.10/include
+
+Name: libffi
+Description: Library supporting Foreign Function Interfaces
+Version: 3.0.10
+Libs: -L${libdir} -lffi
+Cflags: -I${includedir}

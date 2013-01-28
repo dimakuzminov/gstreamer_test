@@ -1,0 +1,11 @@
+prefix=/home/slomo/Projects/gstreamer/gst-sdk/cerbero/dist/android
+exec_prefix=${prefix}
+libdir=/home/slomo/Projects/gstreamer/gst-sdk/cerbero/dist/android/lib
+includedir=${prefix}/include
+
+Name: Pixman
+Description: The pixman library (version 1)
+Version: 0.26.2
+Cflags: -I${includedir}/pixman-1 
+Libs: -L${libdir} -lpixman-1 
+

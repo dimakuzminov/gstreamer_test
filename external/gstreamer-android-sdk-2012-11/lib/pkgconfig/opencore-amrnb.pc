@@ -1,0 +1,10 @@
+prefix=/home/slomo/Projects/gstreamer/gst-sdk/cerbero/dist/android
+exec_prefix=${prefix}
+libdir=/home/slomo/Projects/gstreamer/gst-sdk/cerbero/dist/android/lib
+includedir=${prefix}/include/opencore-amrnb
+
+Name: OpenCORE AMR-NB
+Description: Adaptive Multi-Rate speech codec library
+Version: 0.1.3
+Libs: -L${libdir} -lopencore-amrnb
+Cflags: -I${includedir}

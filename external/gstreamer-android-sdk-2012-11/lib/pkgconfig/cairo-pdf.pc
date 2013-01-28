@@ -1,0 +1,12 @@
+prefix=/home/slomo/Projects/gstreamer/gst-sdk/cerbero/dist/android
+exec_prefix=${prefix}
+libdir=/home/slomo/Projects/gstreamer/gst-sdk/cerbero/dist/android/lib
+includedir=${prefix}/include
+
+Name: cairo-pdf
+Description: PDF surface backend for cairo graphics library
+Version: 1.10.2
+
+Requires: cairo 
+Libs: -lz 
+Cflags: -I${includedir}/cairo 

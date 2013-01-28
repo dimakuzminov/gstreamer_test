@@ -1,0 +1,14 @@
+# theora installed pkg-config file
+
+prefix=/home/slomo/Projects/gstreamer/gst-sdk/cerbero/dist/android
+exec_prefix=${prefix}
+libdir=/home/slomo/Projects/gstreamer/gst-sdk/cerbero/dist/android/lib
+includedir=${prefix}/include
+
+Name: theora
+Description: Theora video codec
+Version: 1.1.1
+Requires: ogg >= 1.1
+Conflicts:
+Libs: -L${libdir} -ltheora
+Cflags: -I${includedir}

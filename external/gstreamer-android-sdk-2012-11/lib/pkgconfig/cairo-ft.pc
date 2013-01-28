@@ -1,0 +1,12 @@
+prefix=/home/slomo/Projects/gstreamer/gst-sdk/cerbero/dist/android
+exec_prefix=${prefix}
+libdir=/home/slomo/Projects/gstreamer/gst-sdk/cerbero/dist/android/lib
+includedir=${prefix}/include
+
+Name: cairo-ft
+Description: FreeType font backend for cairo graphics library
+Version: 1.10.2
+
+Requires: cairo freetype2 >= 9.7.3 
+Libs:  
+Cflags: -I${includedir}/cairo 

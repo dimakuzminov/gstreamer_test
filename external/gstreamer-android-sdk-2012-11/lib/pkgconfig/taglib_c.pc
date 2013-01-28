@@ -1,0 +1,12 @@
+prefix=/home/slomo/Projects/gstreamer/gst-sdk/cerbero/dist/android
+exec_prefix=/home/slomo/Projects/gstreamer/gst-sdk/cerbero/dist/android
+libdir=/home/slomo/Projects/gstreamer/gst-sdk/cerbero/dist/android/lib
+includedir=/home/slomo/Projects/gstreamer/gst-sdk/cerbero/dist/android/include
+
+
+Name: TagLib C Bindings
+Description: Audio meta-data library (C bindings)
+Requires: taglib
+Version: 1.7.2
+Libs: -L/home/slomo/Projects/gstreamer/gst-sdk/cerbero/dist/android/lib -ltag_c
+Cflags: -I/home/slomo/Projects/gstreamer/gst-sdk/cerbero/dist/android/include/taglib 

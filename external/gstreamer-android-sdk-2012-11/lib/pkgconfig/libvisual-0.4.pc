@@ -1,0 +1,12 @@
+prefix=/home/slomo/Projects/gstreamer/gst-sdk/cerbero/dist/android
+exec_prefix=${prefix}
+libdir=/home/slomo/Projects/gstreamer/gst-sdk/cerbero/dist/android/lib
+includedir=${prefix}/include/libvisual-0.4
+pluginsbasedir=/home/slomo/Projects/gstreamer/gst-sdk/cerbero/dist/android/lib/libvisual-0.4
+
+Name: libvisual
+Version: 0.4.0
+Description: an audio visualisation abstraction library.
+Requires: 
+Libs: -L${libdir} -lm -ldl  -lvisual-0.4
+Cflags: -I${includedir} 

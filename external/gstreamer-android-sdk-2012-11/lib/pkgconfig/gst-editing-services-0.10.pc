@@ -1,0 +1,11 @@
+prefix=/home/slomo/Projects/gstreamer/gst-sdk/cerbero/dist/android
+exec_prefix=${prefix}
+libdir=/home/slomo/Projects/gstreamer/gst-sdk/cerbero/dist/android/lib
+includedir=${prefix}/include/gstreamer-0.10
+
+Name: gst-editing-services
+Description: GStreamer Editing Services
+Version: 0.10.1
+Requires: gstreamer-0.10 gstreamer-base-0.10 gstreamer-controller-0.10 gstreamer-pbutils-0.10
+Libs: -L${libdir} -lges-0.10
+Cflags: -I${includedir}

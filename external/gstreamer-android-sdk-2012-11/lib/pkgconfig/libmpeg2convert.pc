@@ -1,0 +1,10 @@
+prefix=/home/slomo/Projects/gstreamer/gst-sdk/cerbero/dist/android
+exec_prefix=${prefix}
+libdir=/home/slomo/Projects/gstreamer/gst-sdk/cerbero/dist/android/lib
+includedir=${prefix}/include
+
+Name: libmpeg2convert
+Description: Image conversion library helper for libmpeg2
+Version: 0.5.1
+Libs: -L${libdir} -lmpeg2convert
+Cflags: -I${includedir}/mpeg2dec
