@@ -80,11 +80,16 @@ main (int argc, char *argv[])
      * any launch line works as long as it contains elements named pay%d. Each
      * element with pay%d names will be a stream */
     factory = gst_rtsp_media_factory_new ();
-
+/*
     sprintf( buffer, "( "
 		    "udpsrc port=9978 caps=\"application/x-rtp, media=(string)video, clock-rate=(int)90000, encoding-name=(string)H264\" "
 		    "! rtph264depay ! ffdec_h264 speed-preset=ultrafast tune=zerolatency ! ffmpegcolorspace ! videoscale ! x264enc speed-preset=ultrafast tune=zerolatency  ! rtph264pay name=pay0 pt=96 " 
 		    ")" );
+*/
+    sprintf( buffer, "( "
+"v4l2src device=/dev/video0 ! video/x-raw-yuv,width=640,height=480 ! videorate ! ffmpegcolorspace ! video/x-raw-yuv,width=640,height=480 ! x264enc tune=zerolatency byte-stream=true bitrate=3000 speed-preset=ultrafast ! rtph264pay name=pay0 pt=96 "
+")" );
+
     printf( "My Command[%s]\n", buffer );
     gst_rtsp_media_factory_set_launch (factory, buffer );
     /* attach the test factory to the /test url */
