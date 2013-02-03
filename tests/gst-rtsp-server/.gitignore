@@ -1,0 +1,6 @@
+.gst-rtsp-server.P
+gst-rtsp-server
+gst-rtsp-server.o
+gst.log
+trash.txt
+
