@@ -3,6 +3,5 @@ gen
 gst-build
 libs
 obj
-
 local.properties
 proguard-project.txt
