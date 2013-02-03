@@ -120,6 +120,7 @@ public class GstRtpClient extends Activity implements SurfaceHolder.Callback {
 
     static {
         System.loadLibrary("gstreamer_android");
+        System.loadLibrary("bz2");
         System.loadLibrary("gst_rtp_client");
         System.loadLibrary("gstudp");
         nativeClassInit();
