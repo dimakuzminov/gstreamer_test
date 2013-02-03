@@ -155,13 +155,8 @@ static void *app_function (void *userdata) {
   data->context = g_main_context_new ();
   g_main_context_push_thread_default(data->context);
 
-  //data->pipeline = gst_parse_launch("udpsrc port=9978 caps = \"application/x-rtp, media=(string)video, clock-rate=(int)90000, encoding-name=(string)H264\" ! rtph264depay ! ffdec_h264 ! ffmpegcolorspace ! videoscale ! video/x-raw-yuv,width=640,height=480 ! ffmpegcolorspace ! xvimagesink", &error);
-
-  //working example
-  //data->pipeline = gst_parse_launch("audiotestsrc ! audioconvert ! audioresample ! autoaudiosink", &error);
-
-  data->pipeline = gst_parse_launch("udpsrc port=9978 ! mpeg2dec ! autovideosink", &error);
-  //data->pipeline = gst_parse_launch("videotestsrc ! warptv ! ffmpegcolorspace ! autovideosink", &error);
+  data->pipeline = gst_parse_launch("udpsrc port=9978 caps=\"application/x-rtp, media=(string)video, clock-rate=(int)90000, encoding-name=(string)H263\" "
+          "! rtph263depay ! ffdec_h263 ! autovideosink", &error);
 
   if (error) {
     gchar *message = g_strdup_printf("Unable to build pipeline: %s", error->message);
