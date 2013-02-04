@@ -10,10 +10,31 @@
         android:id="@+id/surface_video"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
+        android:clickable="false"
+        android:focusable="false"
+        android:focusableInTouchMode="false"
+        android:longClickable="false" />
+
+    <ImageButton
+        android:id="@+id/button_stop"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:contentDescription="@string/button_stop"
+        android:src="@android:drawable/ic_media_pause"
+        android:text="@string/button_stop" />
+
+    <ImageButton
+        android:id="@+id/button_play"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_alignParentRight="true"
         android:layout_alignParentTop="true"
-        android:layout_gravity="center_vertical|center_horizontal"
-        android:layout_toRightOf="@+id/button_stop" />
+        android:contentDescription="@string/button_play"
+        android:src="@android:drawable/ic_media_play"
+        android:text="@string/button_play" />
 
     <TextView
         android:id="@+id/textview_message"
@@ -22,25 +43,5 @@
         android:layout_alignParentBottom="true"
         android:layout_alignParentLeft="true"
         android:gravity="center_horizontal" />
-
-    <ImageButton
-        android:id="@+id/button_play"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentTop="true"
-        android:contentDescription="@string/button_play"
-        android:src="@android:drawable/ic_media_play"
-        android:text="@string/button_play" />
-
-    <ImageButton
-        android:id="@+id/button_stop"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
-        android:layout_below="@+id/button_play"
-        android:contentDescription="@string/button_stop"
-        android:src="@android:drawable/ic_media_pause"
-        android:text="@string/button_stop" />
 
 </RelativeLayout>
