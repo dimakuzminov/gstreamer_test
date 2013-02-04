@@ -328,50 +328,42 @@ public class GstRtpClient extends Activity implements SurfaceHolder.Callback, On
             }
         }
     }
-    
-    public byte isRightStrafe(int x, int y) {
-        int width = mSurfaceView.getWidth();
-        int height= mSurfaceView.getHeight();
-    	int filterViewX = width/FILTER_PART_OF_VIEW;
-    	int filterViewY = height/FILTER_PART_OF_VIEW;
-    	if (x < filterViewX && y > filterViewY && y < (height-filterViewY)) {
-    		return 1;
-    	}
-    	return 0;
-    }
-    
-    public byte isLeftStrafe(int x, int y) {
-        int width = mSurfaceView.getWidth();
-        int height= mSurfaceView.getHeight();
-    	int filterViewX = width/FILTER_PART_OF_VIEW;
-    	int filterViewY = height/FILTER_PART_OF_VIEW;
-    	if (x > (width-filterViewX) && y > filterViewY && y < (height-filterViewY)) {
-    		return 1;
-    	}
-    	return 0;
-    }
 
-    public byte isMoveUp(int x, int y) {
-        int width = mSurfaceView.getWidth();
-        int height= mSurfaceView.getHeight();
-    	int filterViewX = width/FILTER_PART_OF_VIEW;
-    	int filterViewY = height/FILTER_PART_OF_VIEW;
-    	if (x > filterViewX && x < (width-filterViewX) && y < filterViewY) {
-    		return 1;
-    	}
-    	return 0;
-    }
-    
-    public byte isMoveDown(int x, int y) {
-        int width = mSurfaceView.getWidth();
-        int height= mSurfaceView.getHeight();
-    	int filterViewX = width/FILTER_PART_OF_VIEW;
-    	int filterViewY = height/FILTER_PART_OF_VIEW;
-    	if (x > filterViewX && x < (width-filterViewX) && y > (height-filterViewY)) {
-    		return 1;
-    	}
-    	return 0;
-    }
+	public byte isRightStrafe(int x, int y) {
+		int width = mSurfaceView.getWidth();
+		int filterViewX = width / FILTER_PART_OF_VIEW;
+		if (x < filterViewX) {
+			return 1;
+		}
+		return 0;
+	}
+
+	public byte isLeftStrafe(int x, int y) {
+		int width = mSurfaceView.getWidth();
+		int filterViewX = width / FILTER_PART_OF_VIEW;
+		if (x > (width - filterViewX)) {
+			return 1;
+		}
+		return 0;
+	}
+
+	public byte isMoveUp(int x, int y) {
+		int height = mSurfaceView.getHeight();
+		int filterViewY = height / FILTER_PART_OF_VIEW;
+		if (y < filterViewY) {
+			return 1;
+		}
+		return 0;
+	}
+
+	public byte isMoveDown(int x, int y) {
+		int height = mSurfaceView.getHeight();
+		int filterViewY = height / FILTER_PART_OF_VIEW;
+		if (y > (height - filterViewY)) {
+			return 1;
+		}
+		return 0;
+	}
     
 	@Override
 	public boolean onTouch(View v, MotionEvent event) {
