@@ -5,14 +5,16 @@ import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
-import java.util.Timer;
 
 import android.app.Activity;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
-import android.text.format.Time;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
@@ -23,21 +25,29 @@ import android.view.View.OnTouchListener;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.RemoteViews.ActionException;
 
 import com.gstreamer.GStreamer;
 
-public class GstRtpClient extends Activity implements SurfaceHolder.Callback, OnTouchListener {
+public class GstRtpClient extends Activity implements SurfaceHolder.Callback, OnTouchListener, SensorEventListener {
 	private static final String TAG = "7D-DEMO-JOYSTICK";
 	private static final int FILTER_PART_OF_VIEW = 3;
 	private static final long JOYSTICK_RESENDING_DELAY = 100;
-	JoystickConnectionServerThread mJoystickConnectionThread;
+	static JoystickConnectionServerThread mJoystickConnectionThread;
 	JoystickMessageQueueThread mJoystickMessageQueueThread;
 	int mViewWidth;
 	int mViewHeight;
 	private SurfaceView mSurfaceView;
     private static JoystickMessagingHandler mHandler;
-    
+	private SensorManager mSensorManager;
+	private float[] mGravity = new float[3];
+	private float[] mGeomag = new float[3];
+	private float[] mRotationMatrix = new float[16];
+	private static final int CALIBRAITON_CICLES = 10;
+	private int mCalibration = CALIBRAITON_CICLES;
+	private int mInitPhi = 0;
+	private int mInitTheta = 0;
+	private boolean mSensorIsStreaming = false;
+
     private native void nativeInit();     // Initialize native code, build pipeline, etc
     private native void nativeFinalize(); // Destroy pipeline and shutdown native code
     private native void nativePlay();     // Set pipeline to PLAYING
@@ -58,6 +68,8 @@ public class GstRtpClient extends Activity implements SurfaceHolder.Callback, On
         mJoystickConnectionThread.start();
         mJoystickMessageQueueThread = new JoystickMessageQueueThread("Message queue thread");
         mJoystickMessageQueueThread.start();
+        mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
+
         // Initialize GStreamer and warn if it fails
         try {
             GStreamer.init(this);
@@ -74,6 +86,8 @@ public class GstRtpClient extends Activity implements SurfaceHolder.Callback, On
             public void onClick(View v) {
                 is_playing_desired = true;
                 nativePlay();
+                startSensorDataStreaming();
+
             }
         });
 
@@ -82,6 +96,7 @@ public class GstRtpClient extends Activity implements SurfaceHolder.Callback, On
             public void onClick(View v) {
                 is_playing_desired = false;
                 nativePause();
+                stopSensorDataStreaming();
             }
         });
 
@@ -105,7 +120,26 @@ public class GstRtpClient extends Activity implements SurfaceHolder.Callback, On
         nativeInit();
 
     }
-
+    
+    private void startSensorDataStreaming() {
+    	mInitPhi = 0;
+    	mInitTheta = 0;
+    	mCalibration = CALIBRAITON_CICLES;
+    	if (mSensorIsStreaming) {
+    		return;
+    	}
+    	mSensorIsStreaming = true;
+		mHandler.sendMessage(Message.obtain(mHandler,JoystickMessagingHandler.MOTION_TURN_RESENDING_MESSAGE));
+    }
+    
+    private void stopSensorDataStreaming() {
+    	if (mSensorIsStreaming == false) {
+    		return;
+    	}
+    	mSensorIsStreaming = false;
+		mHandler.sendMessage(Message.obtain(mHandler,JoystickMessagingHandler.MOTION_TURN_STOP_RESENDING_MESSAGE));
+    }
+    
     protected void onSaveInstanceState (Bundle outState) {
         Log.d (TAG, "Saving state, playing:" + is_playing_desired);
         outState.putBoolean("playing", is_playing_desired);
@@ -170,7 +204,7 @@ public class GstRtpClient extends Activity implements SurfaceHolder.Callback, On
         nativeSurfaceFinalize ();
     }
     
-    private class JoystickMessagingHandler extends Handler {
+    static private class JoystickMessagingHandler extends Handler {
         private static final int MOTION_MOVE_RESENDING_MESSAGE = 1;
         private static final int MOTION_MOVE_STOP_RESENDING_MESSAGE = 2;
         private static final int MOTION_TURN_RESENDING_MESSAGE = 3;
@@ -207,17 +241,15 @@ public class GstRtpClient extends Activity implements SurfaceHolder.Callback, On
 				if (msg.what == MOTION_MOVE_MESSAGE) {
 					mJoystickConnectionThread.pushMoveData();
 					if (mResendingMove) {
-						Thread.sleep(JOYSTICK_RESENDING_DELAY);
-						mHandler.sendMessage(Message.obtain(mHandler,
-								MOTION_MOVE_MESSAGE));
+						mHandler.sendMessageDelayed(Message.obtain(mHandler,
+								MOTION_MOVE_MESSAGE), JOYSTICK_RESENDING_DELAY);
 					}
 				}
 				if (msg.what == MOTION_TURN_MESSAGE) {
 					mJoystickConnectionThread.pushTurnData();
 					if (mResendingTurn) {
-						Thread.sleep(JOYSTICK_RESENDING_DELAY);
-						mHandler.sendMessage(Message.obtain(mHandler,
-								MOTION_TURN_MESSAGE));
+						mHandler.sendMessageDelayed(Message.obtain(mHandler,
+								MOTION_TURN_MESSAGE), JOYSTICK_RESENDING_DELAY);
 					}
 				}
 			} catch (Exception e) {
@@ -240,6 +272,7 @@ public class GstRtpClient extends Activity implements SurfaceHolder.Callback, On
     }
 
     private class JoystickConnectionServerThread extends Thread {
+    	private static final byte TURN_THRESHOLD = 5;
         private ServerSocket      mServerSocket = null;
         private static final int  SERVERPORT = 9979;
         private Socket			  mTransportSocket = null; 
@@ -268,6 +301,12 @@ public class GstRtpClient extends Activity implements SurfaceHolder.Callback, On
 		public void setTurnData(byte turn_phi, byte turn_theta) {
 			mTurnPhi = turn_phi;
 			mTurnTheta = turn_theta;
+			if (Math.abs(mTurnPhi) < TURN_THRESHOLD) {
+				mTurnPhi = 0;
+			}
+			if (Math.abs(mTurnTheta) < TURN_THRESHOLD) {
+				mTurnTheta = 0;
+			}
 		}
 		
 		public void pushMoveData() {
@@ -288,7 +327,9 @@ public class GstRtpClient extends Activity implements SurfaceHolder.Callback, On
 		}
         
 		public void pushTurnData() {
-			if (mTransportSocket != null && mOut != null) {
+			Log.d(TAG, "Turn data mTurnPhi["+mTurnPhi+"], mTurnTheta["+mTurnTheta+"]");
+			if (mTransportSocket != null && mOut != null &&
+					(mTurnPhi != 0 || mTurnTheta != 0)) {
 				mControlBlock[0] = 0;
 				mControlBlock[1] = 0;
 				mControlBlock[2] = 0;
@@ -400,6 +441,68 @@ public class GstRtpClient extends Activity implements SurfaceHolder.Callback, On
 			mJoystickConnectionThread.setMoveData(left_strafe, right_strafe, move_up, move_down);
 		}
 		return true;
+	}
+
+	@Override
+	public void onAccuracyChanged(Sensor sensor, int accuracy) {
+	}
+
+	//Normalize a degree from 0 to 360 instead of -180 to 180
+	private int normalizeDegrees(double rads){
+	    return (int)((rads+360)%360);
+	}
+	@Override
+	public void onSensorChanged(SensorEvent evt) {
+		int type = evt.sensor.getType();
+
+		// Smoothing the sensor data a bit
+		if (type == Sensor.TYPE_MAGNETIC_FIELD) {
+				mGeomag[0] = (mGeomag[0] * 1 + evt.values[0]) * 0.5f;
+				mGeomag[1] = (mGeomag[1] * 1 + evt.values[1]) * 0.5f;
+				mGeomag[2] = (mGeomag[2] * 1 + evt.values[2]) * 0.5f;
+		} else if (type == Sensor.TYPE_ACCELEROMETER) {
+				mGravity[0] = (mGravity[0] * 2 + evt.values[0]) * 0.33334f;
+				mGravity[1] = (mGravity[1] * 2 + evt.values[1]) * 0.33334f;
+				mGravity[2] = (mGravity[2] * 2 + evt.values[2]) * 0.33334f;
+		}
+
+		if ((type == Sensor.TYPE_MAGNETIC_FIELD)
+				|| (type == Sensor.TYPE_ACCELEROMETER)) {
+			SensorManager.getRotationMatrix(mRotationMatrix, null, mGravity,
+					mGeomag);
+			SensorManager.remapCoordinateSystem(mRotationMatrix,
+					SensorManager.AXIS_Y, SensorManager.AXIS_Z,
+					mRotationMatrix);
+            float values[] = new float[4];
+            SensorManager.getOrientation(mRotationMatrix,values);
+            int theta = normalizeDegrees(Math.toDegrees(values[1]));
+            int phi = normalizeDegrees(Math.toDegrees(values[2]));
+            if (mCalibration > 0) {
+            	mInitPhi = (mInitPhi * 1 + phi)/2;
+            	mInitTheta = (mInitTheta * 1 + theta)/2;
+            	mCalibration--;
+            	mJoystickConnectionThread.setTurnData((byte)0, (byte)0);
+            } else {
+            	mJoystickConnectionThread.setTurnData((byte)(mInitPhi-phi), (byte)(theta-mInitTheta));
+            }
+		}
+	}
+
+	@Override
+	protected void onResume() {
+		super.onResume();
+		mSensorManager.registerListener(this,
+				mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
+				SensorManager.SENSOR_DELAY_GAME);
+		mSensorManager.registerListener(this,
+				mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD),
+				SensorManager.SENSOR_DELAY_GAME);
+	}
+
+	@Override
+	protected void onPause() {
+		super.onPause();
+		mSensorManager.unregisterListener(this);
 	}
 
 }
