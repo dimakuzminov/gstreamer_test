@@ -2,6 +2,7 @@ package com.gst_rtp_client.gst_rtp_client;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
@@ -30,7 +31,7 @@ import com.gstreamer.GStreamer;
 
 public class GstRtpClient extends Activity implements SurfaceHolder.Callback, OnTouchListener, SensorEventListener {
 	private static final String TAG = "7D-DEMO-JOYSTICK";
-	private static final int FILTER_PART_OF_VIEW = 3;
+	private static final int MOVE_FILTER = 20;
 	private static final long JOYSTICK_RESENDING_DELAY = 100;
 	static JoystickConnectionServerThread mJoystickConnectionThread;
 	JoystickMessageQueueThread mJoystickMessageQueueThread;
@@ -42,11 +43,13 @@ public class GstRtpClient extends Activity implements SurfaceHolder.Callback, On
 	private float[] mGravity = new float[3];
 	private float[] mGeomag = new float[3];
 	private float[] mRotationMatrix = new float[16];
-	private static final int CALIBRAITON_CICLES = 10;
+	private static final int CALIBRAITON_CICLES = 20;
 	private int mCalibration = CALIBRAITON_CICLES;
 	private int mInitPhi = 0;
 	private int mInitTheta = 0;
 	private boolean mSensorIsStreaming = false;
+	private int mInitX;
+	private int mInitY;
 
     private native void nativeInit();     // Initialize native code, build pipeline, etc
     private native void nativeFinalize(); // Destroy pipeline and shutdown native code
@@ -86,8 +89,6 @@ public class GstRtpClient extends Activity implements SurfaceHolder.Callback, On
             public void onClick(View v) {
                 is_playing_desired = true;
                 nativePlay();
-                startSensorDataStreaming();
-
             }
         });
 
@@ -129,10 +130,12 @@ public class GstRtpClient extends Activity implements SurfaceHolder.Callback, On
     		return;
     	}
     	mSensorIsStreaming = true;
+    	mJoystickConnectionThread.setTurnData((byte)0, (byte)0);
 		mHandler.sendMessage(Message.obtain(mHandler,JoystickMessagingHandler.MOTION_TURN_RESENDING_MESSAGE));
     }
     
     private void stopSensorDataStreaming() {
+    	mJoystickConnectionThread.setTurnData((byte)0, (byte)0);
     	if (mSensorIsStreaming == false) {
     		return;
     	}
@@ -327,7 +330,7 @@ public class GstRtpClient extends Activity implements SurfaceHolder.Callback, On
 		}
         
 		public void pushTurnData() {
-			Log.d(TAG, "Turn data mTurnPhi["+mTurnPhi+"], mTurnTheta["+mTurnTheta+"]");
+			//Log.d(TAG, "Turn data mTurnPhi["+mTurnPhi+"], mTurnTheta["+mTurnTheta+"]");
 			if (mTransportSocket != null && mOut != null &&
 					(mTurnPhi != 0 || mTurnTheta != 0)) {
 				mControlBlock[0] = 0;
@@ -346,61 +349,65 @@ public class GstRtpClient extends Activity implements SurfaceHolder.Callback, On
 		}
 
 		public void run() {
-	
 			Log.d(TAG, "medialib connection manager thread");
-            try {
-                mServerSocket = new ServerSocket(SERVERPORT);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            Log.i(TAG, "ServerSocket["+Integer.toString(SERVERPORT)+"] is successfully opened");
-            try {
-                mServerSocket.setReuseAddress(true);
-            } catch (SocketException e) {
-                e.printStackTrace();
-            }
-            while (!Thread.currentThread().isInterrupted()) {
-                try {
-                	mTransportSocket = mServerSocket.accept();
-                	mOut = mTransportSocket.getOutputStream();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-    }
+			try {
+				mServerSocket = new ServerSocket();
+			} catch (IOException e) {
+				e.printStackTrace();
+				return;
+			}
+			try {
+				mServerSocket.setReuseAddress(true);
+			} catch (SocketException e) {
+				Log.e(TAG, "ServerSocket cannot reuse port[" + SERVERPORT + "]");
+				e.printStackTrace();
+				return;
+			}
+			try {
+				mServerSocket.bind(new InetSocketAddress(SERVERPORT));
+			} catch (IOException e) {
+				Log.e(TAG, "ServerSocket cannot bind to port[" + SERVERPORT
+						+ "]");
+				e.printStackTrace();
+				return;
+			}
+			Log.i(TAG, "ServerSocket[" + Integer.toString(SERVERPORT)
+					+ "] is successfully opened");
+			while (!Thread.currentThread().isInterrupted()) {
+				try {
+					mTransportSocket = mServerSocket.accept();
+					mOut = mTransportSocket.getOutputStream();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+			Log.d(TAG, "Exist tcp control server");
+		}
+	}
 
 	public byte isRightStrafe(int x, int y) {
-		int width = mSurfaceView.getWidth();
-		int filterViewX = width / FILTER_PART_OF_VIEW;
-		if (x < filterViewX) {
+		if (mInitX - x > MOVE_FILTER) {
 			return 1;
 		}
 		return 0;
 	}
 
 	public byte isLeftStrafe(int x, int y) {
-		int width = mSurfaceView.getWidth();
-		int filterViewX = width / FILTER_PART_OF_VIEW;
-		if (x > (width - filterViewX)) {
+		if (x - mInitX > MOVE_FILTER) {
 			return 1;
 		}
 		return 0;
 	}
 
 	public byte isMoveUp(int x, int y) {
-		int height = mSurfaceView.getHeight();
-		int filterViewY = height / FILTER_PART_OF_VIEW;
-		if (y < filterViewY) {
+		if (mInitY-y > MOVE_FILTER) {
 			return 1;
 		}
 		return 0;
 	}
 
 	public byte isMoveDown(int x, int y) {
-		int height = mSurfaceView.getHeight();
-		int filterViewY = height / FILTER_PART_OF_VIEW;
-		if (y > (height - filterViewY)) {
+		if (y-mInitY > MOVE_FILTER) {
 			return 1;
 		}
 		return 0;
@@ -412,10 +419,15 @@ public class GstRtpClient extends Activity implements SurfaceHolder.Callback, On
 			mHandler.sendMessage(Message
 					.obtain(mHandler,
 							JoystickMessagingHandler.MOTION_MOVE_STOP_RESENDING_MESSAGE));
+            stopSensorDataStreaming();
 			return true;
 		} else if (event.getAction() == MotionEvent.ACTION_DOWN) {
 			mHandler.sendMessage(Message.obtain(mHandler,
 					JoystickMessagingHandler.MOTION_MOVE_RESENDING_MESSAGE));
+            startSensorDataStreaming();
+            mInitX = (int) event.getX(0);
+            mInitY = (int) event.getY(0);
+            return true;
 		}
 		int x = (int) event.getX(0);
 		int y = (int) event.getY(0);
@@ -423,23 +435,7 @@ public class GstRtpClient extends Activity implements SurfaceHolder.Callback, On
 		byte right_strafe = isRightStrafe(x, y);
 		byte move_up = isMoveUp(x, y);
 		byte move_down = isMoveDown(x, y);
-		if (event.getPointerCount() > 1) {
-			x = (int) event.getX(1);
-			y = (int) event.getY(1);
-			if (left_strafe==0 && right_strafe==0){
-				left_strafe = isLeftStrafe(x, y);
-				right_strafe = isRightStrafe(x, y);			
-			}
-			if (move_up==0 && move_down==0){
-				move_up = isMoveUp(x, y);
-				move_down = isMoveDown(x, y);			
-			}
-		}
-		if (left_strafe == 1 || right_strafe == 1 || move_up == 1 || move_down  == 1) {
-			Log.d(TAG, "left_strafe["+left_strafe+"], right_strafe["+right_strafe+
-					"], move_up["+move_up+"], move_down["+move_down+"]");
-			mJoystickConnectionThread.setMoveData(left_strafe, right_strafe, move_up, move_down);
-		}
+		mJoystickConnectionThread.setMoveData(left_strafe, right_strafe, move_up, move_down);
 		return true;
 	}
 
@@ -504,5 +500,5 @@ public class GstRtpClient extends Activity implements SurfaceHolder.Callback, On
 		super.onPause();
 		mSensorManager.unregisterListener(this);
 	}
-
+	
 }
