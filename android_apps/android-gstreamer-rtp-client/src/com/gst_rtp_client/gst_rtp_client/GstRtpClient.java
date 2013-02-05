@@ -347,6 +347,14 @@ public class GstRtpClient extends Activity implements SurfaceHolder.Callback, On
 				}
 			}
 		}
+		
+		public void closeSocket() {
+			try {
+				mServerSocket.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
 
 		public void run() {
 			Log.d(TAG, "medialib connection manager thread");
@@ -379,6 +387,7 @@ public class GstRtpClient extends Activity implements SurfaceHolder.Callback, On
 					mOut = mTransportSocket.getOutputStream();
 				} catch (IOException e) {
 					e.printStackTrace();
+					break;
 				}
 			}
 			Log.d(TAG, "Exist tcp control server");
@@ -501,4 +510,13 @@ public class GstRtpClient extends Activity implements SurfaceHolder.Callback, On
 		mSensorManager.unregisterListener(this);
 	}
 	
+	@Override
+	public void onBackPressed() {
+		mJoystickConnectionThread.closeSocket();
+		try {
+			GstRtpClient.this.finish();
+		} catch (Throwable e) {
+			e.printStackTrace();
+		}
+	}
 }
