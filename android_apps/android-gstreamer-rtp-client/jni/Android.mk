@@ -25,6 +25,42 @@ LOCAL_SHARED_LIBRARIES := gstreamer_android
 include $(BUILD_SHARED_LIBRARY)
 
 include $(CLEAR_VARS)
+LOCAL_MODULE := libgstmpegtsdemux_temp
+LOCAL_SRC_FILES := ../../../external/gstreamer-android-sdk-2012-11/lib/gstreamer-0.10/static/libgstmpegtsdemux.a
+include $(PREBUILT_STATIC_LIBRARY)
+
+include $(CLEAR_VARS)
+LOCAL_PRELINK_MODULE := false
+LOCAL_MODULE := gstmpegtsdemux
+LOCAL_WHOLE_STATIC_LIBRARIES := gstmpegtsdemux_temp
+LOCAL_SHARED_LIBRARIES := gstreamer_android
+include $(BUILD_SHARED_LIBRARY)
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := libgstmpegdemux_temp
+LOCAL_SRC_FILES := ../../../external/gstreamer-android-sdk-2012-11/lib/gstreamer-0.10/static/libgstmpegdemux.a
+include $(PREBUILT_STATIC_LIBRARY)
+
+include $(CLEAR_VARS)
+LOCAL_PRELINK_MODULE := false
+LOCAL_MODULE := gstmpegdemux
+LOCAL_WHOLE_STATIC_LIBRARIES := gstmpegdemux_temp
+LOCAL_SHARED_LIBRARIES := gstreamer_android
+include $(BUILD_SHARED_LIBRARY)
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := libgstvideoparsersbad_temp
+LOCAL_SRC_FILES := ../../../external/gstreamer-android-sdk-2012-11/lib/gstreamer-0.10/static/libgstvideoparsersbad.a
+include $(PREBUILT_STATIC_LIBRARY)
+
+include $(CLEAR_VARS)
+LOCAL_PRELINK_MODULE := false
+LOCAL_MODULE := gstvideoparsersbad
+LOCAL_WHOLE_STATIC_LIBRARIES := gstvideoparsersbad_temp
+LOCAL_SHARED_LIBRARIES := gstreamer_android
+include $(BUILD_SHARED_LIBRARY)
+
+include $(CLEAR_VARS)
 LOCAL_MODULE := libgstffmpeg_temp
 LOCAL_SRC_FILES := ../../../external/gstreamer-android-sdk-2012-11/lib/gstreamer-0.10/static/libgstffmpeg.a
 include $(PREBUILT_STATIC_LIBRARY)
@@ -98,7 +134,8 @@ GSTREAMER_NDK_BUILD_PATH  := $(GSTREAMER_SDK_ROOT)/share/gst-android/ndk-build/
 include $(GSTREAMER_NDK_BUILD_PATH)/plugins.mk
 GSTREAMER_PLUGINS         := coreelements coreindexers adder app audioconvert audiorate audioresample audiotestsrc ffmpeg ffmpegcolorspace \
 							gdp gio pango typefindfunctions videorate videoscale videotestsrc volume autodetect videofilter \
-							mpegtsdemux mpeg2dec $(GSTREAMER_PLUGINS_SYS) $(GSTREAMER_PLUGINS_NET) $(GSTREAMER_PLUGINS_EFFECTS)
+							mpegdemux2 mpegtsdemux mpeg2dec $(GSTREAMER_PLUGINS_SYS) $(GSTREAMER_PLUGINS_NET) $(GSTREAMER_PLUGINS_EFFECTS) \
+							videoparsersbad
 GSTREAMER_EXTRA_DEPS      := gstreamer-interfaces-0.10 gstreamer-video-0.10 zlib
 GSTREAMER_LD              := -lbz2 -lavcodec -lavutil -lavformat
 

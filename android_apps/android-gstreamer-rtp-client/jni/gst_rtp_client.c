@@ -155,9 +155,14 @@ static void *app_function (void *userdata) {
   data->context = g_main_context_new ();
   g_main_context_push_thread_default(data->context);
 
+#if 1
   data->pipeline = gst_parse_launch("udpsrc port=9978 caps=\"application/x-rtp, media=(string)video, clock-rate=(int)90000, encoding-name=(string)H263\" "
           "! rtph263depay ! ffdec_h263 ! autovideosink", &error);
-
+#else
+  data->pipeline = gst_parse_launch("udpsrc port=9978 caps=\"application/x-rtp, media=(string)video, clock-rate=(int)90000, encoding-name=(string)MP2T, ssrc=(uint)3881531361, payload=(int)33\" "
+          //"! rtpmp2tdepay ! tsdemux ! queue ! mpeg4videoparse ! ffdec_mpeg4 ! autovideosink", &error);
+          "! rtpmp2tdepay ! tsdemux ! mpeg4videoparse ! ffdec_mpeg4 ! autovideosink", &error);
+#endif
   if (error) {
     gchar *message = g_strdup_printf("Unable to build pipeline: %s", error->message);
     __android_log_print (ANDROID_LOG_ERROR, "gst_rtp_client", message);
